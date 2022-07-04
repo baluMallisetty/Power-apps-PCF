@@ -1,9 +1,12 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
 import * as React from "React";
 import * as ReactDOM from "react-dom";
-import { jsPDF } from 'jspdf';
-import * as _html2canvas from "html2canvas";
-const html2canvas: any = _html2canvas;
+import * as html2canvas from "html2canvas";
+import * as jsPDF  from 'jspdf';
+
+//const html2canvas: any = _html2canvas;
+import { Template, generate, BLANK_PDF } from '@pdfme/generator';
+//import { Template, BLANK_PDF } from '@pdfme/generator';
 
 
 export class pcf implements ComponentFramework.StandardControl<IInputs, IOutputs> {
@@ -15,6 +18,7 @@ export class pcf implements ComponentFramework.StandardControl<IInputs, IOutputs
 	private _context: ComponentFramework.Context<IInputs>;
 	private _refreshData: EventListenerOrEventListenerObject;
 	private _edtorplaceholder: HTMLDivElement;
+	private _html2canvas : html2canvas;
 	//private editor : editorJS;
 
 
@@ -28,6 +32,7 @@ export class pcf implements ComponentFramework.StandardControl<IInputs, IOutputs
 
 		const gridHTML = `
 <div id="dashboard">
+
  <button id="save-button">Download</button>
  `
 		let ele = document.createElement("div");
@@ -53,17 +58,59 @@ export class pcf implements ComponentFramework.StandardControl<IInputs, IOutputs
 		//this._value = context.parameters.controlValue.raw!;
 		this._context = context;
 		var params = context.parameters;
-
+		
 
 		if (params.fileName.raw?.startsWith('yes')) {
 			params.fileName.raw = 'no'
-
-
-			const doc = new jsPDF("l", "mm", "a1");
+		console.log("pcf fired");
+			try {
+				(window as any).html2canvas = html2canvas
+				const doc = new jsPDF();
 			var width = doc.internal.pageSize.getWidth();
 			var height = doc.internal.pageSize.getHeight();
 			
 			doc.setFontSize(40);
+			//doc.text("Test",100,100)
+			//doc.save();
+			var options = {
+				pagesplit: true,
+				html2canvas : html2canvas
+		   };
+		   console.log("calling HTML");
+		   //doc.addJS(html2canvas);
+		   doc.text("Sample Header",10,10);
+		   doc.line(width/4,height/4,width,height/4);
+			doc.fromHTML("<html><h1>Header<h1></html>", width/2, height/2, {
+				width: 170
+			 }, function() {
+				doc.save('sample-file.pdf');
+			 });
+			} catch (error) {
+				console.log(error);
+			}
+			
+			return;
+			let ele = document.createElement("div");
+			ele.id = "image_ren";
+			ele.innerHTML = `"<html><h1>Header<h1></html>"`;
+			ele.style.overflow = 'visible'
+			document.getElementsByTagName('BODY')[0].append(ele);
+
+			html2canvas(ele, {
+				logging: true,
+				profile: true,
+				width: width,
+				height: height,
+				scale: 5,
+				useCORS: true
+			}).then(function (canvas) {
+				console.log("inside html2canvas callback");
+				const imgData = canvas.toDataURL('image/png');
+				//doc.addImage(imgData, 'JPEG', 0, 0, width , height);
+				//doc.save();
+			})
+			
+			return;
 
 			//doc.text(35, 25, "Octonyan loves jsPDF");
 			//let i=0
@@ -120,15 +167,15 @@ table, th, td {
 					}).then(function (canvas) {
 						console.log("inside html2canvas callback");
 						const imgData = canvas.toDataURL('image/png');
-						doc.addImage(imgData, 'JPEG', 0, 0, width , height);
-						doc.addPage();
+						//doc.addImage(imgData, 'JPEG', 0, 0, width , height);
+						//doc.addPage();
 						document.getElementById(ele.id)?.remove();
 						// doc.addImage(htmlToPDF, 'JPEG', 0, 0, width * 0.5, height * 0.5);
 						// doc.addPage();
 						if (i == 4) {
 							setTimeout(() => {
 								console.log('hello');
-								doc.save("dash.pdf");
+								//doc.save("dash.pdf");
 								//document.getElementsByTagName('')
 							}, 0);
 
@@ -151,7 +198,9 @@ table, th, td {
 			//controlValue: this._value
 		};
 	}
+public pdfReady(doc : any): void{
 
+}
 	public destroy(): void {
 		//	this.inputElement.removeEventListener("input", this._refreshData);
 	}
