@@ -80,7 +80,12 @@ export class pcf implements ComponentFramework.StandardControl<IInputs, IOutputs
 		   //doc.addJS(html2canvas);
 		   doc.text("Sample Header",10,10);
 		   doc.line(width/4,height/4,width,height/4);
-			doc.fromHTML("<html><h1>Header<h1></html>", width/2, height/2, {
+			doc.fromHTML(`<html><h1>Header<h1>
+			<div>
+  <p>Taken from wikpedia</p>
+  <img src="https://picsum.photos/200/300" alt="Red dot" />
+</div>
+</html>`, width/2, height/2, {
 				width: 170
 			 }, function() {
 				doc.save('sample-file.pdf');
